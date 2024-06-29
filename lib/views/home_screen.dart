@@ -1,0 +1,288 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:naviindus/services/api_service.dart';
+import 'package:naviindus/utils/app_color.dart';
+import 'package:naviindus/utils/dynamic_sizing.dart';
+import 'package:naviindus/views/register_screen.dart';
+import 'package:naviindus/widgets/button.dart';
+
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        actions: [
+          Icon(
+            Icons.notifications_active_outlined,
+            size: R.rw(28, context),
+          ),
+          SizedBox(
+            width: R.rw(10, context),
+          )
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () {
+          return Future.delayed(const Duration(seconds: 1));
+        },
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(R.rw(16, context)),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                        decoration: InputDecoration(
+                            prefixIcon:
+                                Icon(Icons.search, color: Colors.black45),
+                            contentPadding: EdgeInsets.all(R.rw(10, context)),
+                            hintText: "Search for treatments",
+                            hintStyle: TextStyle(
+                                fontSize: R.rw(14, context),
+                                fontWeight: FontWeight.w300),
+                            border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(R.rw(8, context))))),
+                  ),
+                  SizedBox(width: R.rw(8, context)),
+                  ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: primaryColor,
+                          shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(R.rw(6, context)))),
+                      onPressed: () {},
+                      child: Text("Search")),
+                ],
+              ),
+            ),
+            SizedBox(height: R.rh(8, context)),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: R.rw(16, context)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Sort by :",
+                    style: TextStyle(fontSize: R.rw(16, context)),
+                  ),
+                  SizedBox(width: R.rw(8, context)),
+                  ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          elevation: 0,
+                          side: BorderSide(color: Colors.black54)),
+                      onPressed: () {},
+                      child: Row(
+                        children: [
+                          Text(
+                            "Date",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          SizedBox(
+                            width: R.rw(16, context),
+                          ),
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: primaryColor,
+                          )
+                        ],
+                      ))
+                ],
+              ),
+            ),
+            Divider(),
+            ref.watch(patientListProvider).when(
+                  data: (data) {
+                    if (data == null) {
+                      return Center(
+                        child: Text("Patient List is empty!!!"),
+                      );
+                    } else {
+                      return Expanded(
+                        child: ListView.separated(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: R.rw(16, context),
+                                vertical: R.rh(8, context)),
+                            shrinkWrap: true,
+                            itemBuilder: (context, index) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                    color: Color(0xffF1F1F1),
+                                    borderRadius: BorderRadius.circular(
+                                        R.rw(12, context))),
+                                child: Column(
+                                  children: [
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                          left: R.rw(12, context),
+                                          right: R.rw(12, context),
+                                          top: R.rw(16, context)),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text("${index + 1}.   ",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: R.rw(18, context))),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                data.patient![index].name
+                                                    .toString(),
+                                                style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize:
+                                                        R.rw(18, context)),
+                                              ),
+                                              SizedBox(
+                                                height: R.rh(2, context),
+                                              ),
+                                              SizedBox(
+                                                width: R.rw(250, context),
+                                                child: Text(
+                                                  data
+                                                      .patient![index]
+                                                      .patientdetailsSet![0]
+                                                      .treatmentName
+                                                      .toString(),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                      color: primaryColor,
+                                                      fontWeight:
+                                                          FontWeight.w300,
+                                                      fontSize:
+                                                          R.rw(16, context)),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                height: R.rh(10, context),
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons
+                                                            .calendar_today_outlined,
+                                                        color: Colors.red,
+                                                        size: R.rw(18, context),
+                                                      ),
+                                                      SizedBox(
+                                                        width: R.rw(4, context),
+                                                      ),
+                                                      if (data.patient![index]
+                                                              .dateNdTime !=
+                                                          null)
+                                                        Text(data
+                                                            .patient![index]
+                                                            .dateNdTime!
+                                                            .split("T")[0]),
+                                                      if (data.patient![index]
+                                                              .dateNdTime ==
+                                                          null)
+                                                        Text(data
+                                                            .patient![index]
+                                                            .createdAt!
+                                                            .split("T")[0])
+                                                    ],
+                                                  ),
+                                                  SizedBox(
+                                                    width: R.rw(24, context),
+                                                  ),
+                                                  Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.group_outlined,
+                                                        color: Colors.red,
+                                                        size: R.rw(18, context),
+                                                      ),
+                                                      SizedBox(
+                                                        width: R.rw(4, context),
+                                                      ),
+                                                      Text(
+                                                        "Jithesh",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.black54),
+                                                      )
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                              SizedBox(
+                                                height: R.rh(4, context),
+                                              ),
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    Divider(),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Text(
+                                          "View Booking details",
+                                          style: TextStyle(
+                                              fontSize: R.rw(16, context),
+                                              fontWeight: FontWeight.w400),
+                                        ),
+                                        Icon(
+                                          Icons.arrow_forward_ios_rounded,
+                                          size: R.rw(20, context),
+                                          color: primaryColor,
+                                        )
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: R.rh(8, context),
+                                    )
+                                  ],
+                                ),
+                              );
+                            },
+                            separatorBuilder: (context, index) => SizedBox(
+                                  height: R.rh(10, context),
+                                ),
+                            itemCount: data.patient!.length),
+                      );
+                    }
+                  },
+                  error: (error, stackTrace) => Text(error.toString()),
+                  loading: () => Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+            Padding(
+              padding: EdgeInsets.all(R.rw(16, context)),
+              child: ButtonWidget(
+                onpressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RegisterScreen(),
+                      ));
+                },
+                text: "Register Now",
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
