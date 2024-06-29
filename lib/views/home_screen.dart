@@ -1,8 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:naviindus/services/api_service.dart';
 import 'package:naviindus/utils/app_color.dart';
 import 'package:naviindus/utils/dynamic_sizing.dart';
@@ -41,7 +38,7 @@ class HomeScreen extends ConsumerWidget {
                     child: TextField(
                         decoration: InputDecoration(
                             prefixIcon:
-                                Icon(Icons.search, color: Colors.black45),
+                                const Icon(Icons.search, color: Colors.black45),
                             contentPadding: EdgeInsets.all(R.rw(10, context)),
                             hintText: "Search for treatments",
                             hintStyle: TextStyle(
@@ -60,7 +57,7 @@ class HomeScreen extends ConsumerWidget {
                               borderRadius:
                                   BorderRadius.circular(R.rw(6, context)))),
                       onPressed: () {},
-                      child: Text("Search")),
+                      child: const Text("Search")),
                 ],
               ),
             ),
@@ -79,18 +76,18 @@ class HomeScreen extends ConsumerWidget {
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           elevation: 0,
-                          side: BorderSide(color: Colors.black54)),
+                          side: const BorderSide(color: Colors.black54)),
                       onPressed: () {},
                       child: Row(
                         children: [
-                          Text(
+                          const Text(
                             "Date",
                             style: TextStyle(color: Colors.black),
                           ),
                           SizedBox(
                             width: R.rw(16, context),
                           ),
-                          Icon(
+                          const Icon(
                             Icons.keyboard_arrow_down_rounded,
                             color: primaryColor,
                           )
@@ -99,173 +96,162 @@ class HomeScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            Divider(),
+            const Divider(),
             ref.watch(patientListProvider).when(
                   data: (data) {
                     if (data == null) {
-                      return Center(
+                      return const Center(
                         child: Text("Patient List is empty!!!"),
                       );
                     } else {
                       return Expanded(
-                        child: ListView.separated(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: R.rw(16, context),
-                                vertical: R.rh(8, context)),
-                            shrinkWrap: true,
-                            itemBuilder: (context, index) {
-                              return Container(
-                                decoration: BoxDecoration(
-                                    color: Color(0xffF1F1F1),
-                                    borderRadius: BorderRadius.circular(
-                                        R.rw(12, context))),
-                                child: Column(
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets.only(
-                                          left: R.rw(12, context),
-                                          right: R.rw(12, context),
-                                          top: R.rw(16, context)),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text("${index + 1}.   ",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: R.rw(18, context))),
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                data.patient![index].name
-                                                    .toString(),
+                          child: ListView.separated(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: R.rw(16, context),
+                                  vertical: R.rh(8, context)),
+                              shrinkWrap: true,
+                              itemBuilder: (context, index) {
+                                return Container(
+                                  decoration: BoxDecoration(
+                                      color: const Color(0xffF1F1F1),
+                                      borderRadius: BorderRadius.circular(
+                                          R.rw(12, context))),
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                            left: R.rw(12, context),
+                                            right: R.rw(12, context),
+                                            top: R.rw(16, context)),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text("${index + 1}.   ",
                                                 style: TextStyle(
                                                     fontWeight: FontWeight.bold,
                                                     fontSize:
-                                                        R.rw(18, context)),
-                                              ),
-                                              SizedBox(
-                                                height: R.rh(2, context),
-                                              ),
-                                              SizedBox(
-                                                width: R.rw(250, context),
-                                                child: Text(
-                                                  data
-                                                      .patient![index]
-                                                      .patientdetailsSet![0]
-                                                      .treatmentName
+                                                        R.rw(18, context))),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  data.patient![index].name
                                                       .toString(),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
                                                   style: TextStyle(
-                                                      color: primaryColor,
                                                       fontWeight:
-                                                          FontWeight.w300,
+                                                          FontWeight.bold,
                                                       fontSize:
-                                                          R.rw(16, context)),
+                                                          R.rw(18, context)),
                                                 ),
-                                              ),
-                                              SizedBox(
-                                                height: R.rh(10, context),
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      Icon(
-                                                        Icons
-                                                            .calendar_today_outlined,
-                                                        color: Colors.red,
-                                                        size: R.rw(18, context),
-                                                      ),
-                                                      SizedBox(
-                                                        width: R.rw(4, context),
-                                                      ),
-                                                      if (data.patient![index]
-                                                              .dateNdTime !=
-                                                          null)
-                                                        Text(data
-                                                            .patient![index]
-                                                            .dateNdTime!
-                                                            .split("T")[0]),
-                                                      if (data.patient![index]
-                                                              .dateNdTime ==
-                                                          null)
-                                                        Text(data
-                                                            .patient![index]
-                                                            .createdAt!
-                                                            .split("T")[0])
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                    width: R.rw(24, context),
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Icon(
-                                                        Icons.group_outlined,
-                                                        color: Colors.red,
-                                                        size: R.rw(18, context),
-                                                      ),
-                                                      SizedBox(
-                                                        width: R.rw(4, context),
-                                                      ),
-                                                      Text(
-                                                        "Jithesh",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.black54),
-                                                      )
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                height: R.rh(4, context),
-                                              ),
-                                            ],
-                                          )
+                                                SizedBox(
+                                                    height: R.rh(2, context)),
+                                                SizedBox(
+                                                  width: R.rw(250, context),
+                                                  child: Text(
+                                                      data
+                                                          .patient![index]
+                                                          .patientdetailsSet![0]
+                                                          .treatmentName
+                                                          .toString(),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                          color: primaryColor,
+                                                          fontWeight:
+                                                              FontWeight.w300,
+                                                          fontSize: R.rw(
+                                                              16, context))),
+                                                ),
+                                                SizedBox(
+                                                    height: R.rh(10, context)),
+                                                Row(
+                                                  children: [
+                                                    Row(
+                                                      children: [
+                                                        Icon(
+                                                            Icons
+                                                                .calendar_today_outlined,
+                                                            color: Colors.red,
+                                                            size: R.rw(
+                                                                18, context)),
+                                                        SizedBox(
+                                                            width: R.rw(
+                                                                4, context)),
+                                                        if (data.patient![index]
+                                                                .dateNdTime !=
+                                                            null)
+                                                          Text(data
+                                                              .patient![index]
+                                                              .dateNdTime!
+                                                              .split("T")[0]),
+                                                        if (data.patient![index]
+                                                                .dateNdTime ==
+                                                            null)
+                                                          Text(data
+                                                              .patient![index]
+                                                              .createdAt!
+                                                              .split("T")[0])
+                                                      ],
+                                                    ),
+                                                    SizedBox(
+                                                        width:
+                                                            R.rw(24, context)),
+                                                    Row(
+                                                      children: [
+                                                        Icon(
+                                                            Icons
+                                                                .group_outlined,
+                                                            color: Colors.red,
+                                                            size: R.rw(
+                                                                18, context)),
+                                                        SizedBox(
+                                                            width: R.rw(
+                                                                4, context)),
+                                                        const Text("Jithesh",
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .black54))
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(
+                                                    height: R.rh(4, context)),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      const Divider(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Text("View Booking details",
+                                              style: TextStyle(
+                                                  fontSize: R.rw(16, context),
+                                                  fontWeight: FontWeight.w400)),
+                                          Icon(Icons.arrow_forward_ios_rounded,
+                                              size: R.rw(20, context),
+                                              color: primaryColor)
                                         ],
                                       ),
-                                    ),
-                                    Divider(),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceAround,
-                                      children: [
-                                        Text(
-                                          "View Booking details",
-                                          style: TextStyle(
-                                              fontSize: R.rw(16, context),
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                        Icon(
-                                          Icons.arrow_forward_ios_rounded,
-                                          size: R.rw(20, context),
-                                          color: primaryColor,
-                                        )
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: R.rh(8, context),
-                                    )
-                                  ],
-                                ),
-                              );
-                            },
-                            separatorBuilder: (context, index) => SizedBox(
-                                  height: R.rh(10, context),
-                                ),
-                            itemCount: data.patient!.length),
-                      );
+                                      SizedBox(height: R.rh(8, context))
+                                    ],
+                                  ),
+                                );
+                              },
+                              separatorBuilder: (context, index) => SizedBox(
+                                    height: R.rh(10, context),
+                                  ),
+                              itemCount: data.patient!.length));
                     }
                   },
                   error: (error, stackTrace) => Text(error.toString()),
-                  loading: () => Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                 ),
             Padding(
               padding: EdgeInsets.all(R.rw(16, context)),
@@ -274,7 +260,7 @@ class HomeScreen extends ConsumerWidget {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RegisterScreen(),
+                        builder: (context) => const RegisterScreen(),
                       ));
                 },
                 text: "Register Now",

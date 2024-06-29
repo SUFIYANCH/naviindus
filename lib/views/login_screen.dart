@@ -1,8 +1,6 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:naviindus/services/api_service.dart';
-import 'package:naviindus/services/storage_service.dart';
 import 'package:naviindus/utils/dynamic_sizing.dart';
 import 'package:naviindus/utils/snackbar.dart';
 import 'package:naviindus/views/home_screen.dart';
@@ -17,8 +15,17 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  TextEditingController usernameController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  TextEditingController usernameController =
+      TextEditingController(text: "test_user");
+  TextEditingController passwordController =
+      TextEditingController(text: "12345678");
+  @override
+  void dispose() {
+    usernameController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

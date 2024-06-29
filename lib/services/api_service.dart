@@ -43,15 +43,33 @@ class ApiService {
     return null;
   }
 
-  Future<bool> registerApi() async {
+  Future<bool> registerApi(RegisterModel data) async {
     try {
       Response response = await dio.post("PatientUpdate",
+          data: FormData.fromMap({
+            "name": data.name,
+            "phone": data.phone,
+            "address": data.address,
+            "excecutive": data.executive,
+            "branch": data.branch,
+            "total_amount": data.totalAmount,
+            "discount_amount": data.discountAmount,
+            "advance_amount": data.advanceAmount,
+            "balance_amount": data.balanceAmount,
+            "date_nd_time": data.dateNdTime,
+            "payment": data.payment,
+            "male": data.male.join(','),
+            "female": data.female.join(','),
+            "id": "",
+            "treatments": data.treatments.join(',')
+          }),
           options: Options(headers: {"Authorization": "Bearer $token"}));
       if (response.statusCode == 200) {
+        log("successfully registered");
         return true;
       }
     } on DioException catch (e) {
-      log("Branch error:$e");
+      log("Register error:$e");
     }
     return false;
   }
@@ -72,10 +90,12 @@ class ApiService {
   }
 
   Future<TreatmentModel?> treatmentApi() async {
+    log("a");
     try {
       Response response = await dio.get("TreatmentList",
           options: Options(headers: {"Authorization": "Bearer $token"}));
       if (response.statusCode == 200) {
+        log("treatment:${response.data}");
         String json = jsonEncode(response.data);
 
         return treatmentModelFromJson(json);
@@ -92,4 +112,7 @@ final patientListProvider = FutureProvider<PatientListModel?>((ref) async {
 });
 final branchListProvider = FutureProvider<BranchModel?>((ref) async {
   return ApiService().branchApi();
+});
+final treatmentListProvider = FutureProvider<TreatmentModel?>((ref) async {
+  return ApiService().treatmentApi();
 });

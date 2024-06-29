@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:naviindus/views/home_screen.dart';
 import 'package:naviindus/views/login_screen.dart';
 import 'package:naviindus/views/register_screen.dart';
 
