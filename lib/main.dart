@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:naviindus/views/login_screen.dart';
-import 'package:naviindus/views/register_screen.dart';
+import 'package:naviindus/views/splash_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -16,7 +15,7 @@ class MyApp extends StatelessWidget {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Naviindus',
-      home: LoginScreen(),
+      home: SplashScreen(),
     );
   }
 }

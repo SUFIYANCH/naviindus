@@ -13,7 +13,7 @@ class RegisterModel {
   List<int> male;
   List<int> female;
   String branch;
-  List<String> treatments;
+  List<int> treatments;
 
   RegisterModel({
     required this.name,

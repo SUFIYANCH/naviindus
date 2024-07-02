@@ -44,6 +44,23 @@ class ApiService {
   }
 
   Future<bool> registerApi(RegisterModel data) async {
+    log("${[
+      data.name,
+      data.phone,
+      data.address,
+      data.executive,
+      data.branch,
+      data.totalAmount,
+      data.discountAmount,
+      data.advanceAmount,
+      data.balanceAmount,
+      data.dateNdTime,
+      data.payment,
+      data.male.join(','),
+      data.female.join(','),
+      data.treatments.join(',')
+    ]}");
+
     try {
       Response response = await dio.post("PatientUpdate",
           data: FormData.fromMap({
@@ -52,10 +69,10 @@ class ApiService {
             "address": data.address,
             "excecutive": data.executive,
             "branch": data.branch,
-            "total_amount": data.totalAmount,
-            "discount_amount": data.discountAmount,
-            "advance_amount": data.advanceAmount,
-            "balance_amount": data.balanceAmount,
+            "total_amount": data.totalAmount.round(),
+            "discount_amount": data.discountAmount.round(),
+            "advance_amount": data.advanceAmount.round(),
+            "balance_amount": data.balanceAmount.round(),
             "date_nd_time": data.dateNdTime,
             "payment": data.payment,
             "male": data.male.join(','),
@@ -64,6 +81,7 @@ class ApiService {
             "treatments": data.treatments.join(',')
           }),
           options: Options(headers: {"Authorization": "Bearer $token"}));
+
       if (response.statusCode == 200) {
         log("successfully registered");
         return true;

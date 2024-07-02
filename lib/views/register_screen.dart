@@ -1,10 +1,11 @@
+import 'dart:developer';
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:naviindus/models/branch_model.dart';
+import 'package:naviindus/models/branch_model.dart' as branch_model;
 import 'package:naviindus/models/register_model.dart';
+import 'package:naviindus/models/treatment_model.dart';
 import 'package:naviindus/services/api_service.dart';
 import 'package:naviindus/utils/app_color.dart';
 import 'package:naviindus/utils/dynamic_sizing.dart';
@@ -26,14 +27,14 @@ class RegisterScreen extends ConsumerStatefulWidget {
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   String? selectedLocation;
-  String? selectedHour;
-  String? selectedMinute;
+  int? selectedHour;
+  int? selectedMinute;
   int maleCount = 0;
   int femaleCount = 0;
-  String? selectedTreatment;
-  Branch? selectedBranch;
+  Treatment? selectedTreatment;
+  branch_model.Branch? selectedBranch;
   List<String> branchNames = [];
-  List<String> treatmentList = [];
+  List<Treatment> treatmentList = [];
   List<int> maleList = [];
   List<int> femaleList = [];
   String? selectedPayment = "Cash";
@@ -60,16 +61,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<DropdownMenuItem<String>> hourItems = [];
+    List<DropdownMenuItem<int>> hourItems = [];
     for (int i = 0; i <= 23; i++) {
       hourItems.add(
-        DropdownMenuItem(value: i.toString(), child: Text(i.toString())),
+        DropdownMenuItem(value: i, child: Text(i.toString())),
       );
     }
-    List<DropdownMenuItem<String>> minuteItems = [];
+    List<DropdownMenuItem<int>> minuteItems = [];
     for (int i = 0; i <= 59; i++) {
       minuteItems.add(
-        DropdownMenuItem(value: i.toString(), child: Text(i.toString())),
+        DropdownMenuItem(value: i, child: Text(i.toString())),
       );
     }
     return Scaffold(
@@ -156,8 +157,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               color: primaryColor,
                             ),
                             items: ((data?.branches) ?? [])
-                                .map((e) => DropdownMenuItem<Branch>(
-                                    value: e, child: Text(e.name.toString())))
+                                .map((e) =>
+                                    DropdownMenuItem<branch_model.Branch>(
+                                        value: e,
+                                        child: Text(e.name.toString())))
                                 .toList(),
                             onChanged: (value) {
                               setState(() {
@@ -230,43 +233,53 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ButtonWidget(
                     text: "Save",
                     onpressed: () {
-                      // if (nameController.text.isNotEmpty &&
-                      //     whatsappController.text.isNotEmpty &&
-                      //     addressController.text.isNotEmpty &&
-                      //     selectedLocation.toString().isNotEmpty &&
-                      //     selectedBranch.toString().isNotEmpty &&
-                      //     treatmentList.isNotEmpty &&
-                      //     totalAmtController.text.isNotEmpty &&
-                      //     discountAmtController.text.isNotEmpty &&
-                      //     advanceAmtController.text.isNotEmpty &&
-                      //     balanceAmtController.text.isNotEmpty &&
-                      //     selectedPayment.toString().isNotEmpty &&
-                      //     pickedDate.toString().isNotEmpty &&
-                      //     selectedHour.toString().isNotEmpty &&
-                      //     selectedMinute.toString().isNotEmpty) {
-                      //   ApiService().registerApi(RegisterModel(
-                      //       name: nameController.text,
-                      //       executive: selectedLocation.toString(),
-                      //       payment: selectedPayment.toString(),
-                      //       phone: whatsappController.text,
-                      //       address: addressController.text,
-                      //       totalAmount: double.parse(totalAmtController.text),
-                      //       discountAmount:
-                      //           double.parse(discountAmtController.text),
-                      //       advanceAmount:
-                      //           double.parse(advanceAmtController.text),
-                      //       balanceAmount:
-                      //           double.parse(balanceAmtController.text),
-                      //       dateNdTime: pickedDate.toString().substring(0, 10),
-                      //       id: '',
-                      //       male: maleList,
-                      //       female: femaleList,
-                      //       branch: selectedBranch.toString(),
-                      //       treatments: treatmentList));
-                      // } else {
-                      //   snackbar("Please fill all the fields", context);
-                      // }
-                      createPDF();
+                      if (nameController.text.isNotEmpty &&
+                          whatsappController.text.isNotEmpty &&
+                          addressController.text.isNotEmpty &&
+                          selectedLocation.toString().isNotEmpty &&
+                          selectedBranch.toString().isNotEmpty &&
+                          treatmentList.isNotEmpty &&
+                          totalAmtController.text.isNotEmpty &&
+                          discountAmtController.text.isNotEmpty &&
+                          advanceAmtController.text.isNotEmpty &&
+                          balanceAmtController.text.isNotEmpty &&
+                          selectedPayment.toString().isNotEmpty &&
+                          pickedDate.toString().isNotEmpty &&
+                          selectedHour.toString().isNotEmpty &&
+                          selectedMinute.toString().isNotEmpty) {
+                        ApiService()
+                            .registerApi(RegisterModel(
+                                name: nameController.text,
+                                executive: selectedLocation.toString(),
+                                payment: selectedPayment.toString(),
+                                phone: whatsappController.text,
+                                address: addressController.text,
+                                totalAmount:
+                                    double.parse(totalAmtController.text),
+                                discountAmount:
+                                    double.parse(discountAmtController.text),
+                                advanceAmount:
+                                    double.parse(advanceAmtController.text),
+                                balanceAmount:
+                                    double.parse(balanceAmtController.text),
+                                dateNdTime:
+                                    " ${pickedDate.toString().split(' ')}-${formatTime(selectedHour!, selectedMinute!)}",
+                                id: '',
+                                male: List.generate(treatmentList.length,
+                                    (index) => treatmentList[index].id!),
+                                female: List.generate(treatmentList.length,
+                                    (index) => treatmentList[index].id!),
+                                branch: selectedBranch!.id.toString(),
+                                treatments: List.generate(treatmentList.length,
+                                    (index) => treatmentList[index].id!)))
+                            .then((value) {
+                          snackbar("Created Successfully", context);
+                          Navigator.pop(context);
+                          createPDF();
+                        });
+                      } else {
+                        snackbar("Please fill all the fields", context);
+                      }
                     },
                   ),
                   SizedBox(height: R.rh(40, context)),
@@ -306,7 +319,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         SizedBox(
                           width: R.rw(250, context),
                           child: Text(
-                            treatmentList[index].toString(),
+                            treatmentList[index].name.toString(),
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                                 fontWeight: FontWeight.w500,
@@ -383,6 +396,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               treatmentList.removeAt(index);
                               maleList.removeAt(index);
                               femaleList.removeAt(index);
+                              totalAmtController.text = totalAmtFunc();
                             });
                           },
                           child: Icon(
@@ -442,8 +456,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   color: primaryColor,
                                 ),
                                 items: ((data?.treatments) ?? [])
-                                    .map((e) => DropdownMenuItem<String>(
-                                        value: e.name,
+                                    .map((e) => DropdownMenuItem<Treatment>(
+                                        value: e,
                                         child: Text(e.name.toString())))
                                     .toList(),
                                 onChanged: (value) {
@@ -467,7 +481,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               );
                             },
                             error: (error, stackTrace) => Center(
-                              child: Text(e.toString()),
+                              child: Text(error.toString()),
                             ),
                             loading: () => Center(
                               child: CircularProgressIndicator(),
@@ -647,14 +661,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         text: "Save",
                         onpressed: () {
                           if (selectedTreatment != null) {
-                            treatmentList.add(selectedTreatment.toString());
+                            treatmentList.add(selectedTreatment!);
                             maleList.add(maleCount);
                             femaleList.add(femaleCount);
                             Navigator.pop(context);
                             maleCount = 0;
                             femaleCount = 0;
                             selectedTreatment = null;
-                            setState(() {});
+                            setState(() {
+                              totalAmtController.text = totalAmtFunc();
+                            });
                           }
                         },
                       ),
@@ -673,8 +689,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ));
   }
 
-  Row treatmentTime(List<DropdownMenuItem<String>> hourItems,
-      BuildContext context, List<DropdownMenuItem<String>> minuteItems) {
+  Row treatmentTime(List<DropdownMenuItem<int>> hourItems, BuildContext context,
+      List<DropdownMenuItem<int>> minuteItems) {
     return Row(
       children: [
         Expanded(
@@ -687,7 +703,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             items: hourItems,
             onChanged: (value) {
               setState(() {
-                selectedHour = value.toString();
+                selectedHour = value;
               });
             },
             decoration: InputDecoration(
@@ -714,7 +730,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             items: minuteItems,
             onChanged: (value) {
               setState(() {
-                selectedMinute = value.toString();
+                selectedMinute = value;
               });
             },
             decoration: InputDecoration(
@@ -852,30 +868,31 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.end,
                           children: [
-                            pw.Text("Name",
+                            pw.Text(
+                                selectedBranch!.name.toString().toUpperCase(),
                                 style: pw.TextStyle(
                                     fontWeight: pw.FontWeight.bold,
                                     fontSize: 14)),
                             pw.SizedBox(height: 4),
-                            pw.Text("address",
+                            pw.Text(selectedBranch!.address.toString(),
                                 style: pw.TextStyle(
                                     fontWeight: pw.FontWeight.bold,
                                     fontSize: 14,
                                     color: PdfColor.fromInt(0xff9A9A9A))),
                             pw.SizedBox(height: 4),
-                            pw.Text("email: ",
+                            pw.Text("email: ${selectedBranch!.mail}",
                                 style: pw.TextStyle(
                                     fontWeight: pw.FontWeight.bold,
                                     fontSize: 14,
                                     color: PdfColor.fromInt(0xff9A9A9A))),
                             pw.SizedBox(height: 4),
-                            pw.Text("Mob: ",
+                            pw.Text("Mob: ${selectedBranch!.phone}",
                                 style: pw.TextStyle(
                                     fontWeight: pw.FontWeight.bold,
                                     fontSize: 14,
                                     color: PdfColor.fromInt(0xff9A9A9A))),
                             pw.SizedBox(height: 4),
-                            pw.Text("GST No: ",
+                            pw.Text("GST No: ${selectedBranch!.gst}",
                                 style: pw.TextStyle(
                                     fontWeight: pw.FontWeight.bold,
                                     fontSize: 14)),
@@ -890,226 +907,179 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         fontWeight: pw.FontWeight.bold,
                         fontSize: 16)),
                 pw.SizedBox(height: 10),
-                pw.Expanded(
-                  child: pw.Row(children: [
-                    pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text("Name",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14)),
-                          pw.SizedBox(height: 8),
-                          pw.Text("Address",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14)),
-                          pw.SizedBox(height: 8),
-                          pw.Text("Whatsapp Number",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14)),
-                        ]),
-                    pw.SizedBox(width: 16),
-                    pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text("name",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14,
-                                  color: PdfColor.fromInt(0xff9A9A9A))),
-                          pw.SizedBox(height: 8),
-                          pw.Text("name",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14,
-                                  color: PdfColor.fromInt(0xff9A9A9A))),
-                          pw.SizedBox(height: 8),
-                          pw.Text("name",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14,
-                                  color: PdfColor.fromInt(0xff9A9A9A))),
-                        ]),
-                    pw.Spacer(),
-                    pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text("Booked On",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14)),
-                          pw.SizedBox(height: 8),
-                          pw.Text("Treatment Date",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14)),
-                          pw.SizedBox(height: 8),
-                          pw.Text("Treatment Time",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14)),
-                        ]),
-                    pw.SizedBox(width: 16),
-                    pw.Column(
-                        crossAxisAlignment: pw.CrossAxisAlignment.start,
-                        children: [
-                          pw.Text("date",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14,
-                                  color: PdfColor.fromInt(0xff9A9A9A))),
-                          pw.SizedBox(height: 8),
-                          pw.Text("name",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14,
-                                  color: PdfColor.fromInt(0xff9A9A9A))),
-                          pw.SizedBox(height: 8),
-                          pw.Text("name",
-                              style: pw.TextStyle(
-                                  fontWeight: pw.FontWeight.bold,
-                                  fontSize: 14,
-                                  color: PdfColor.fromInt(0xff9A9A9A))),
-                        ]),
-                  ]),
-                ),
-                pw.Divider(
-                    color: PdfColors.grey400,
-                    borderStyle: pw.BorderStyle.dotted),
-                pw.SizedBox(
-                  height: 16,
-                ),
                 pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            pw.Text("Treatment",
+                            pw.Text("Name",
                                 style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xFF006837),
                                     fontWeight: pw.FontWeight.bold,
-                                    fontSize: 16)),
-                            pw.SizedBox(
-                              height: 20,
-                            ),
-                            pw.Text("Panchakarma",
+                                    fontSize: 14)),
+                            pw.SizedBox(height: 8),
+                            pw.Text("Address",
                                 style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xff9A9A9A),
-                                    fontWeight: pw.FontWeight.normal,
-                                    fontSize: 16)),
-                            pw.SizedBox(
-                              height: 8,
-                            ),
-                            pw.Text("Njavara Kizhi Treatment",
+                                    fontWeight: pw.FontWeight.bold,
+                                    fontSize: 14)),
+                            pw.SizedBox(height: 8),
+                            pw.Text("Whatsapp Number",
                                 style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xff9A9A9A),
-                                    fontWeight: pw.FontWeight.normal,
-                                    fontSize: 16)),
+                                    fontWeight: pw.FontWeight.bold,
+                                    fontSize: 14)),
                           ]),
+                      pw.SizedBox(width: 16),
                       pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            pw.Text("Price",
+                            pw.Text(nameController.text,
                                 style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xFF006837),
                                     fontWeight: pw.FontWeight.bold,
-                                    fontSize: 16)),
-                            pw.SizedBox(
-                              height: 20,
-                            ),
-                            pw.Text("230",
+                                    fontSize: 14,
+                                    color: PdfColor.fromInt(0xff9A9A9A))),
+                            pw.SizedBox(height: 8),
+                            pw.Text(addressController.text,
                                 style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xff9A9A9A),
-                                    fontWeight: pw.FontWeight.normal,
-                                    fontSize: 16)),
-                            pw.SizedBox(
-                              height: 8,
-                            ),
-                            pw.Text("250",
-                                style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xff9A9A9A),
-                                    fontWeight: pw.FontWeight.normal,
-                                    fontSize: 16)),
-                          ]),
-                      pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.center,
-                          children: [
-                            pw.Text("Male",
-                                style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xFF006837),
                                     fontWeight: pw.FontWeight.bold,
-                                    fontSize: 16)),
-                            pw.SizedBox(
-                              height: 20,
+                                    fontSize: 14,
+                                    color: PdfColor.fromInt(0xff9A9A9A))),
+                            pw.SizedBox(height: 8),
+                            pw.Text(
+                              whatsappController.text,
+                              style: pw.TextStyle(
+                                  fontWeight: pw.FontWeight.bold,
+                                  fontSize: 14,
+                                  color: PdfColor.fromInt(0xff9A9A9A)),
                             ),
-                            pw.Text("4",
-                                style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xff9A9A9A),
-                                    fontWeight: pw.FontWeight.normal,
-                                    fontSize: 16)),
-                            pw.SizedBox(
-                              height: 8,
-                            ),
-                            pw.Text("4",
-                                style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xff9A9A9A),
-                                    fontWeight: pw.FontWeight.normal,
-                                    fontSize: 16)),
                           ]),
-                      pw.Column(
-                          crossAxisAlignment: pw.CrossAxisAlignment.center,
-                          children: [
-                            pw.Text("Female",
-                                style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xFF006837),
-                                    fontWeight: pw.FontWeight.bold,
-                                    fontSize: 16)),
-                            pw.SizedBox(
-                              height: 20,
-                            ),
-                            pw.Text("4",
-                                style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xff9A9A9A),
-                                    fontWeight: pw.FontWeight.normal,
-                                    fontSize: 16)),
-                            pw.SizedBox(
-                              height: 8,
-                            ),
-                            pw.Text("4",
-                                style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xff9A9A9A),
-                                    fontWeight: pw.FontWeight.normal,
-                                    fontSize: 16)),
-                          ]),
+                      pw.Spacer(),
                       pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
                           children: [
-                            pw.Text("Total",
+                            pw.Text("Booked On",
                                 style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xFF006837),
                                     fontWeight: pw.FontWeight.bold,
-                                    fontSize: 16)),
-                            pw.SizedBox(
-                              height: 20,
-                            ),
-                            pw.Text("2500",
+                                    fontSize: 14)),
+                            pw.SizedBox(height: 8),
+                            pw.Text("Treatment Date",
                                 style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xff9A9A9A),
-                                    fontWeight: pw.FontWeight.normal,
-                                    fontSize: 16)),
-                            pw.SizedBox(
-                              height: 8,
-                            ),
-                            pw.Text("2500",
+                                    fontWeight: pw.FontWeight.bold,
+                                    fontSize: 14)),
+                            pw.SizedBox(height: 8),
+                            pw.Text("Treatment Time",
                                 style: pw.TextStyle(
-                                    color: PdfColor.fromInt(0xff9A9A9A),
-                                    fontWeight: pw.FontWeight.normal,
-                                    fontSize: 16)),
+                                    fontWeight: pw.FontWeight.bold,
+                                    fontSize: 14)),
+                          ]),
+                      pw.SizedBox(width: 16),
+                      pw.Column(
+                          crossAxisAlignment: pw.CrossAxisAlignment.start,
+                          children: [
+                            pw.Text(DateTime.now().toString().substring(0, 10),
+                                style: pw.TextStyle(
+                                    fontWeight: pw.FontWeight.bold,
+                                    fontSize: 14,
+                                    color: PdfColor.fromInt(0xff9A9A9A))),
+                            pw.SizedBox(height: 8),
+                            pw.Text(
+                                pickedDate!
+                                    .toLocal()
+                                    .toString()
+                                    .split(' ')
+                                    .first,
+                                style: pw.TextStyle(
+                                    fontWeight: pw.FontWeight.bold,
+                                    fontSize: 14,
+                                    color: PdfColor.fromInt(0xff9A9A9A))),
+                            pw.SizedBox(height: 8),
+                            pw.Text(formatTime(selectedHour!, selectedMinute!),
+                                style: pw.TextStyle(
+                                    fontWeight: pw.FontWeight.bold,
+                                    fontSize: 14,
+                                    color: PdfColor.fromInt(0xff9A9A9A))),
                           ]),
                     ]),
+                pw.Divider(
+                    color: PdfColors.grey400,
+                    borderStyle: pw.BorderStyle.dotted),
+                pw.SizedBox(
+                  height: 16,
+                ),
+                pw.Table(
+                  children: [
+                    pw.TableRow(children: [
+                      pw.Padding(
+                        padding: pw.EdgeInsets.only(bottom: 16),
+                        child: pw.Text("Treatment",
+                            style: pw.TextStyle(
+                                color: PdfColor.fromInt(0xFF006837),
+                                fontWeight: pw.FontWeight.bold,
+                                fontSize: 16)),
+                      ),
+                      pw.Padding(
+                        padding: pw.EdgeInsets.only(bottom: 16),
+                        child: pw.Text("Price",
+                            style: pw.TextStyle(
+                                color: PdfColor.fromInt(0xFF006837),
+                                fontWeight: pw.FontWeight.bold,
+                                fontSize: 16)),
+                      ),
+                      pw.Padding(
+                        padding: pw.EdgeInsets.only(bottom: 16),
+                        child: pw.Text("Male",
+                            style: pw.TextStyle(
+                                color: PdfColor.fromInt(0xFF006837),
+                                fontWeight: pw.FontWeight.bold,
+                                fontSize: 16)),
+                      ),
+                      pw.Padding(
+                        padding: pw.EdgeInsets.only(bottom: 16),
+                        child: pw.Text("Female",
+                            style: pw.TextStyle(
+                                color: PdfColor.fromInt(0xFF006837),
+                                fontWeight: pw.FontWeight.bold,
+                                fontSize: 16)),
+                      ),
+                      pw.Padding(
+                        padding: pw.EdgeInsets.only(bottom: 16),
+                        child: pw.Text("Total",
+                            style: pw.TextStyle(
+                                color: PdfColor.fromInt(0xFF006837),
+                                fontWeight: pw.FontWeight.bold,
+                                fontSize: 16)),
+                      ),
+                    ]),
+                    for (int i = 0; i < treatmentList.length; i++)
+                      pw.TableRow(children: [
+                        pw.Text(treatmentList[i].name.toString(),
+                            style: pw.TextStyle(
+                                color: PdfColor.fromInt(0xff9A9A9A),
+                                fontWeight: pw.FontWeight.normal,
+                                fontSize: 16)),
+                        pw.Text("${treatmentList[i].price}",
+                            style: pw.TextStyle(
+                                color: PdfColor.fromInt(0xff9A9A9A),
+                                fontWeight: pw.FontWeight.normal,
+                                fontSize: 16)),
+                        pw.Text(maleList[0].toString(),
+                            style: pw.TextStyle(
+                                color: PdfColor.fromInt(0xff9A9A9A),
+                                fontWeight: pw.FontWeight.normal,
+                                fontSize: 16)),
+                        pw.Text(femaleList[0].toString(),
+                            style: pw.TextStyle(
+                                color: PdfColor.fromInt(0xff9A9A9A),
+                                fontWeight: pw.FontWeight.normal,
+                                fontSize: 16)),
+                        pw.Text(
+                            "${(femaleList[0] + maleList[0]) * int.parse(treatmentList[i].price!)}",
+                            style: pw.TextStyle(
+                                color: PdfColor.fromInt(0xff9A9A9A),
+                                fontWeight: pw.FontWeight.normal,
+                                fontSize: 16)),
+                      ]),
+                  ],
+                ),
                 pw.SizedBox(
                   height: 10,
                 ),
@@ -1162,28 +1132,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             pw.Column(
                                 crossAxisAlignment: pw.CrossAxisAlignment.end,
                                 children: [
-                                  pw.Text("5000",
+                                  pw.Text(totalAmtFunc(),
                                       style: pw.TextStyle(
                                           fontWeight: pw.FontWeight.bold,
                                           fontSize: 16)),
                                   pw.SizedBox(
                                     height: 8,
                                   ),
-                                  pw.Text("500",
+                                  pw.Text(discountAmtController.text,
                                       style: pw.TextStyle(
                                           fontWeight: pw.FontWeight.normal,
                                           fontSize: 16)),
                                   pw.SizedBox(
                                     height: 8,
                                   ),
-                                  pw.Text("500",
+                                  pw.Text(advanceAmtController.text,
                                       style: pw.TextStyle(
                                           fontWeight: pw.FontWeight.normal,
                                           fontSize: 16)),
                                   pw.SizedBox(
                                     height: 16,
                                   ),
-                                  pw.Text("5000",
+                                  pw.Text(
+                                      "${(int.parse(totalAmtFunc()) - (int.parse(advanceAmtController.text) + int.parse(discountAmtController.text)))}",
                                       style: pw.TextStyle(
                                           fontWeight: pw.FontWeight.bold,
                                           fontSize: 16)),
@@ -1233,5 +1204,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final file = File(savePath);
     await file.writeAsBytes(await doc.save());
     OpenFilex.open(file.path);
+  }
+
+  String totalAmtFunc() {
+    int sum = 0;
+    for (var i = 0; i < treatmentList.length; i++) {
+      sum += (maleList[i] + femaleList[i]) * int.parse(treatmentList[i].price!);
+    }
+    return sum.toString();
+  }
+
+  String formatTime(int hours, int minutes) {
+    int hour = hours;
+    int minute = minutes;
+    String period = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    String formattedHour = hour.toString();
+    log('$formattedHour:$minute  $period');
+    return '$formattedHour:$minute  $period';
   }
 }
