@@ -305,112 +305,115 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   left: R.rw(12, context),
                   right: R.rw(12, context),
                   top: R.rw(16, context)),
-              child: Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("${index + 1}.   ",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: R.rw(18, context))),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: R.rw(250, context),
-                          child: Text(
-                            treatmentList[index].name.toString(),
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: R.rw(18, context)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("${index + 1}.   ",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: R.rw(18, context))),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: R.rw(250, context),
+                            child: Text(
+                              treatmentList[index].name.toString(),
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: R.rw(18, context)),
+                            ),
                           ),
-                        ),
-                        SizedBox(
-                          height: R.rh(2, context),
-                        ),
-                        Row(
-                          children: [
-                            Row(
-                              children: [
-                                Text("Male",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: R.rw(16, context),
-                                        color: primaryColor)),
-                                SizedBox(
-                                  width: R.rw(8, context),
-                                ),
-                                Container(
-                                  alignment: Alignment.center,
-                                  height: R.rh(25, context),
-                                  width: R.rw(40, context),
-                                  decoration: BoxDecoration(
-                                      color: Colors.transparent,
-                                      border: Border.all(),
-                                      borderRadius: BorderRadius.circular(
-                                          R.rw(4, context))),
-                                  child: Text(maleList[index].toString()),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              width: R.rw(24, context),
-                            ),
-                            Row(
-                              children: [
-                                Text("Female",
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: R.rw(16, context),
-                                        color: primaryColor)),
-                                SizedBox(
-                                  width: R.rw(8, context),
-                                ),
-                                Container(
-                                  alignment: Alignment.center,
-                                  height: R.rh(25, context),
-                                  width: R.rw(40, context),
-                                  decoration: BoxDecoration(
-                                      color: Colors.transparent,
-                                      border: Border.all(),
-                                      borderRadius: BorderRadius.circular(
-                                          R.rw(4, context))),
-                                  child: Text(femaleList[index].toString()),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: R.rh(6, context),
-                        ),
-                      ],
-                    ),
-                    Spacer(),
-                    Column(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              treatmentList.removeAt(index);
-                              maleList.removeAt(index);
-                              femaleList.removeAt(index);
-                              totalAmtController.text = totalAmtFunc();
-                            });
-                          },
-                          child: Icon(
-                            Icons.cancel,
-                            color: Colors.red,
+                          SizedBox(
+                            height: R.rh(2, context),
                           ),
+                          Row(
+                            children: [
+                              Row(
+                                children: [
+                                  Text("Male",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: R.rw(16, context),
+                                          color: primaryColor)),
+                                  SizedBox(
+                                    width: R.rw(8, context),
+                                  ),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    height: R.rh(25, context),
+                                    width: R.rw(40, context),
+                                    decoration: BoxDecoration(
+                                        color: Colors.transparent,
+                                        border: Border.all(),
+                                        borderRadius: BorderRadius.circular(
+                                            R.rw(4, context))),
+                                    child: Text(maleList[index].toString()),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                width: R.rw(24, context),
+                              ),
+                              Row(
+                                children: [
+                                  Text("Female",
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: R.rw(16, context),
+                                          color: primaryColor)),
+                                  SizedBox(
+                                    width: R.rw(8, context),
+                                  ),
+                                  Container(
+                                    alignment: Alignment.center,
+                                    height: R.rh(25, context),
+                                    width: R.rw(40, context),
+                                    decoration: BoxDecoration(
+                                        color: Colors.transparent,
+                                        border: Border.all(),
+                                        borderRadius: BorderRadius.circular(
+                                            R.rw(4, context))),
+                                    child: Text(femaleList[index].toString()),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: R.rh(6, context),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            treatmentList.removeAt(index);
+                            maleList.removeAt(index);
+                            femaleList.removeAt(index);
+                            totalAmtController.text = totalAmtFunc();
+                          });
+                        },
+                        child: Icon(
+                          Icons.cancel,
+                          color: Colors.red,
                         ),
-                        Icon(
-                          Icons.edit,
-                        ),
-                      ],
-                    )
-                  ],
-                ),
+                      ),
+                      Icon(
+                        Icons.edit,
+                      ),
+                    ],
+                  )
+                ],
               ),
             ),
           );
