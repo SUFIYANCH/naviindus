@@ -6,6 +6,7 @@ import 'package:naviindus/utils/snackbar.dart';
 import 'package:naviindus/views/home_screen.dart';
 import 'package:naviindus/widgets/button.dart';
 import 'package:naviindus/widgets/textfield.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,6 +27,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SizedBox(
@@ -76,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       onpressed: () {
                         if (usernameController.text.isNotEmpty &&
                             passwordController.text.isNotEmpty) {
-                          ApiService()
+                          apiService
                               .loginApi(usernameController.text,
                                   passwordController.text)
                               .then((value) {

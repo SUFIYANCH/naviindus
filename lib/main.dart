@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:naviindus/services/api_service.dart';
+import 'package:naviindus/services/select_notifier.dart';
 import 'package:naviindus/views/splash_screen.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -12,10 +14,20 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Naviindus',
-      home: SplashScreen(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => ApiService(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => SelectedNotifier(),
+        ),
+      ],
+      child: const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Naviindus',
+        home: SplashScreen(),
+      ),
     );
   }
 }

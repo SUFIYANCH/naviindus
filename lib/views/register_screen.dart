@@ -2,11 +2,11 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:naviindus/models/branch_model.dart' as branch_model;
 import 'package:naviindus/models/register_model.dart';
 import 'package:naviindus/models/treatment_model.dart';
 import 'package:naviindus/services/api_service.dart';
+import 'package:naviindus/services/select_notifier.dart';
 import 'package:naviindus/utils/app_color.dart';
 import 'package:naviindus/utils/dynamic_sizing.dart';
 import 'package:naviindus/utils/snackbar.dart';
@@ -17,22 +17,21 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:naviindus/widgets/textfield.dart';
+import 'package:provider/provider.dart';
 
-class RegisterScreen extends ConsumerStatefulWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   String? selectedLocation;
   int? selectedHour;
   int? selectedMinute;
   int maleCount = 0;
   int femaleCount = 0;
-  Treatment? selectedTreatment;
-  branch_model.Branch? selectedBranch;
   List<String> branchNames = [];
   List<Treatment> treatmentList = [];
   List<int> maleList = [];
@@ -61,6 +60,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = Provider.of<ApiService>(context);
+
     List<DropdownMenuItem<int>> hourItems = [];
     for (int i = 0; i <= 23; i++) {
       hourItems.add(
@@ -119,12 +120,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       Icons.keyboard_arrow_down_rounded,
                       color: primaryColor,
                     ),
-                    items: [
+                    items: const [
                       DropdownMenuItem(
-                          child: Text("Kottayam"), value: "Kottayam"),
-                      DropdownMenuItem(child: Text("Kochi"), value: "Kochi"),
+                          value: "Kottayam", child: Text("Kottayam")),
+                      DropdownMenuItem(value: "Kochi", child: Text("Kochi")),
                       DropdownMenuItem(
-                          child: Text("Kozhikode"), value: "Kozhikode"),
+                          value: "Kozhikode", child: Text("Kozhikode")),
                     ],
                     onChanged: (value) {
                       setState(() {
@@ -147,55 +148,54 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   Text(" Branch",
                       style: TextStyle(fontSize: R.rw(16, context))),
                   SizedBox(height: R.rh(6, context)),
-                  ref.watch(branchListProvider).when(
-                        data: (data) {
-                          return DropdownButtonFormField(
-                            value: selectedBranch,
-                            padding: EdgeInsets.zero,
-                            icon: const Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: primaryColor,
-                            ),
-                            items: ((data?.branches) ?? [])
-                                .map((e) =>
-                                    DropdownMenuItem<branch_model.Branch>(
-                                        value: e,
-                                        child: Text(e.name.toString())))
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedBranch = value;
-                              });
-                            },
-                            decoration: InputDecoration(
-                                contentPadding:
-                                    EdgeInsets.all(R.rw(12, context)),
-                                filled: true,
-                                fillColor:
-                                    const Color(0xffD9D9D9).withOpacity(0.25),
-                                hintText: "Select the branch",
-                                hintStyle: TextStyle(
-                                    fontSize: R.rw(14, context),
-                                    fontWeight: FontWeight.w300),
-                                border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                        R.rw(8, context)))),
-                          );
-                        },
-                        error: (error, stackTrace) => Center(
-                          child: Text(error.toString()),
-                        ),
-                        loading: () => Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
+                  FutureBuilder(
+                      future: apiService.branchApi(),
+                      builder: (context, snapshot) {
+                        branch_model.BranchModel? data = snapshot.data;
+                        return DropdownButtonFormField(
+                          value: Provider.of<SelectedNotifier>(context)
+                              .selectedBranch
+                              ?.id,
+                          padding: EdgeInsets.zero,
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: primaryColor,
+                          ),
+                          items: ((data?.branches) ?? [])
+                              .map((e) => DropdownMenuItem(
+                                  value: e.id, child: Text(e.name.toString())))
+                              .toList(),
+                          onChanged: (value) {
+                            log(value!.toString());
+                            for (var i in data!.branches!) {
+                              if (i.id == value) {
+                                Provider.of<SelectedNotifier>(context,
+                                        listen: false)
+                                    .selectBranch(i);
+                              }
+                            }
+                          },
+                          decoration: InputDecoration(
+                              contentPadding: EdgeInsets.all(R.rw(12, context)),
+                              filled: true,
+                              fillColor:
+                                  const Color(0xffD9D9D9).withOpacity(0.25),
+                              hintText: "Select the branch",
+                              hintStyle: TextStyle(
+                                  fontSize: R.rw(14, context),
+                                  fontWeight: FontWeight.w300),
+                              border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(R.rw(8, context)))),
+                        );
+                      }),
                   SizedBox(height: R.rh(20, context)),
                   Text(" Treatments",
                       style: TextStyle(fontSize: R.rw(16, context))),
                   SizedBox(height: R.rh(6, context)),
                   treatmentsList(),
                   SizedBox(height: R.rh(10, context)),
-                  addTreatments(context),
+                  addTreatments(context, apiService),
                   SizedBox(height: R.rh(20, context)),
                   TextfieldWidget(
                       keyboardtype: TextInputType.number,
@@ -237,7 +237,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           whatsappController.text.isNotEmpty &&
                           addressController.text.isNotEmpty &&
                           selectedLocation.toString().isNotEmpty &&
-                          selectedBranch.toString().isNotEmpty &&
+                          Provider.of<SelectedNotifier>(context, listen: false)
+                                  .selectedBranch
+                                  ?.id !=
+                              null &&
                           treatmentList.isNotEmpty &&
                           totalAmtController.text.isNotEmpty &&
                           discountAmtController.text.isNotEmpty &&
@@ -247,7 +250,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           pickedDate.toString().isNotEmpty &&
                           selectedHour.toString().isNotEmpty &&
                           selectedMinute.toString().isNotEmpty) {
-                        ApiService()
+                        apiService
                             .registerApi(RegisterModel(
                                 name: nameController.text,
                                 executive: selectedLocation.toString(),
@@ -269,13 +272,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     (index) => treatmentList[index].id!),
                                 female: List.generate(treatmentList.length,
                                     (index) => treatmentList[index].id!),
-                                branch: selectedBranch!.id.toString(),
+                                branch: Provider.of<SelectedNotifier>(context,
+                                        listen: false)
+                                    .selectedBranch!
+                                    .id
+                                    .toString(),
                                 treatments: List.generate(treatmentList.length,
                                     (index) => treatmentList[index].id!)))
                             .then((value) {
                           snackbar("Created Successfully", context);
                           Navigator.pop(context);
-                          createPDF();
+                          createPDF(context);
                         });
                       } else {
                         snackbar("Please fill all the fields", context);
@@ -424,7 +431,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         itemCount: treatmentList.length);
   }
 
-  ElevatedButton addTreatments(BuildContext context) {
+  ElevatedButton addTreatments(BuildContext context, ApiService service) {
     return ElevatedButton(
         style: ElevatedButton.styleFrom(
             foregroundColor: Colors.black,
@@ -448,48 +455,49 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         style: TextStyle(fontSize: R.rw(16, context)),
                       ),
                       SizedBox(height: R.rh(6, context)),
-                      ref.watch(treatmentListProvider).when(
-                            data: (data) {
-                              return DropdownButtonFormField(
-                                isExpanded: true,
-                                value: selectedTreatment,
-                                padding: EdgeInsets.zero,
-                                icon: const Icon(
-                                  Icons.keyboard_arrow_down_rounded,
-                                  color: primaryColor,
-                                ),
-                                items: ((data?.treatments) ?? [])
-                                    .map((e) => DropdownMenuItem<Treatment>(
-                                        value: e,
-                                        child: Text(e.name.toString())))
-                                    .toList(),
-                                onChanged: (value) {
-                                  state(() {
-                                    selectedTreatment = value;
-                                  });
-                                },
-                                decoration: InputDecoration(
-                                    contentPadding:
-                                        EdgeInsets.all(R.rw(12, context)),
-                                    filled: true,
-                                    fillColor: const Color(0xffD9D9D9)
-                                        .withOpacity(0.25),
-                                    hintText: "Select prefered treatment",
-                                    hintStyle: TextStyle(
-                                        fontSize: R.rw(14, context),
-                                        fontWeight: FontWeight.w300),
-                                    border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                            R.rw(8, context)))),
-                              );
-                            },
-                            error: (error, stackTrace) => Center(
-                              child: Text(error.toString()),
-                            ),
-                            loading: () => Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          ),
+                      FutureBuilder(
+                          future: service.treatmentApi(),
+                          builder: (context, snapshot) {
+                            TreatmentModel? data = snapshot.data;
+                            return DropdownButtonFormField(
+                              isExpanded: true,
+                              value: Provider.of<SelectedNotifier>(context)
+                                  .selectedTreatment
+                                  ?.id,
+                              padding: EdgeInsets.zero,
+                              icon: const Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: primaryColor,
+                              ),
+                              items: ((data?.treatments) ?? [])
+                                  .map((e) => DropdownMenuItem(
+                                      value: e.id,
+                                      child: Text(e.name.toString())))
+                                  .toList(),
+                              onChanged: (value) {
+                                for (var i in data!.treatments!) {
+                                  if (i.id == value) {
+                                    Provider.of<SelectedNotifier>(context,
+                                            listen: false)
+                                        .selectTreatment(i);
+                                  }
+                                }
+                              },
+                              decoration: InputDecoration(
+                                  contentPadding:
+                                      EdgeInsets.all(R.rw(12, context)),
+                                  filled: true,
+                                  fillColor:
+                                      const Color(0xffD9D9D9).withOpacity(0.25),
+                                  hintText: "Select prefered treatment",
+                                  hintStyle: TextStyle(
+                                      fontSize: R.rw(14, context),
+                                      fontWeight: FontWeight.w300),
+                                  border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          R.rw(8, context)))),
+                            );
+                          }),
                       SizedBox(height: R.rh(20, context)),
                       Text(
                         " Add Patients",
@@ -663,14 +671,22 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ButtonWidget(
                         text: "Save",
                         onpressed: () {
-                          if (selectedTreatment != null) {
-                            treatmentList.add(selectedTreatment!);
+                          if (Provider.of<SelectedNotifier>(context,
+                                      listen: false)
+                                  .selectedTreatment !=
+                              null) {
+                            treatmentList.add(Provider.of<SelectedNotifier>(
+                                    context,
+                                    listen: false)
+                                .selectedTreatment!);
                             maleList.add(maleCount);
                             femaleList.add(femaleCount);
                             Navigator.pop(context);
                             maleCount = 0;
                             femaleCount = 0;
-                            selectedTreatment = null;
+                            Provider.of<SelectedNotifier>(context,
+                                    listen: false)
+                                .selectTreatment(null);
                             setState(() {
                               totalAmtController.text = totalAmtFunc();
                             });
@@ -850,7 +866,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     ]);
   }
 
-  createPDF() async {
+  createPDF(BuildContext con) async {
     var logo = (await rootBundle.load("assets/logo.png")).buffer.asUint8List();
     var sign = (await rootBundle.load("assets/sign.png")).buffer.asUint8List();
 
@@ -872,30 +888,43 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           crossAxisAlignment: pw.CrossAxisAlignment.end,
                           children: [
                             pw.Text(
-                                selectedBranch!.name.toString().toUpperCase(),
+                                Provider.of<SelectedNotifier>(con,
+                                        listen: false)
+                                    .selectedBranch!
+                                    .name
+                                    .toString()
+                                    .toUpperCase(),
                                 style: pw.TextStyle(
                                     fontWeight: pw.FontWeight.bold,
                                     fontSize: 14)),
                             pw.SizedBox(height: 4),
-                            pw.Text(selectedBranch!.address.toString(),
+                            pw.Text(
+                                Provider.of<SelectedNotifier>(con,
+                                        listen: false)
+                                    .selectedBranch!
+                                    .address
+                                    .toString(),
                                 style: pw.TextStyle(
                                     fontWeight: pw.FontWeight.bold,
                                     fontSize: 14,
                                     color: PdfColor.fromInt(0xff9A9A9A))),
                             pw.SizedBox(height: 4),
-                            pw.Text("email: ${selectedBranch!.mail}",
+                            pw.Text(
+                                "email: ${Provider.of<SelectedNotifier>(con, listen: false).selectedBranch!.mail}",
                                 style: pw.TextStyle(
                                     fontWeight: pw.FontWeight.bold,
                                     fontSize: 14,
                                     color: PdfColor.fromInt(0xff9A9A9A))),
                             pw.SizedBox(height: 4),
-                            pw.Text("Mob: ${selectedBranch!.phone}",
+                            pw.Text(
+                                "Mob: ${Provider.of<SelectedNotifier>(con, listen: false).selectedBranch!.phone}",
                                 style: pw.TextStyle(
                                     fontWeight: pw.FontWeight.bold,
                                     fontSize: 14,
                                     color: PdfColor.fromInt(0xff9A9A9A))),
                             pw.SizedBox(height: 4),
-                            pw.Text("GST No: ${selectedBranch!.gst}",
+                            pw.Text(
+                                "GST No: ${Provider.of<SelectedNotifier>(con, listen: false).selectedBranch!.gst}",
                                 style: pw.TextStyle(
                                     fontWeight: pw.FontWeight.bold,
                                     fontSize: 14)),

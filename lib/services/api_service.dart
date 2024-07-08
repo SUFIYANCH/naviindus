@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:dio/dio.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/material.dart';
 import 'package:naviindus/models/branch_model.dart';
 import 'package:naviindus/models/login_model.dart';
 import 'package:naviindus/models/patientList_model.dart';
 import 'package:naviindus/models/register_model.dart';
 import 'package:naviindus/models/treatment_model.dart';
 
-class ApiService {
+class ApiService extends ChangeNotifier {
   static late String token;
   final Dio dio =
       Dio(BaseOptions(baseUrl: "https://flutter-amr.noviindus.in/api/"));
@@ -124,13 +124,3 @@ class ApiService {
     return null;
   }
 }
-
-final patientListProvider = FutureProvider<PatientListModel?>((ref) async {
-  return ApiService().patientListApi();
-});
-final branchListProvider = FutureProvider<BranchModel?>((ref) async {
-  return ApiService().branchApi();
-});
-final treatmentListProvider = FutureProvider<TreatmentModel?>((ref) async {
-  return ApiService().treatmentApi();
-});
